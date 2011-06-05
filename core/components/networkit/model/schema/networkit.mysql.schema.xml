@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<model package="NetworkIt" baseClass="xPDOObject" platform="mysql" defaultEngine="MyISAM">
+
+    <!-- will be used for anything from chatrooms to private messages -->
+    <!-- the attributes field is meant for attaching site-specific info, such as the page or group it originated from -->
+    <!-- example: to have multiple chatrooms, set the attributes for each message to chat1, chat2, etc... depending on the room ID -->
+    <!-- example: to have a private conversation, set the "from" and "to" fields to the appropriate userids and set "private" to 1 -->
+    <object class="NetworkMessage" table="networkit_messages" extends="xPDOSimpleObject">  
+        <field key="attributes" dbtype="varchar" precision="20" phptype="string" null="false" default="" />  
+        <field key="name" dbtype="varchar" precision="???" phptype="string" null="false" default="" />  
+        <field key="subject" dbtype="varchar" precision="???" phptype="string" null="false" default="" />  
+        <field key="message" dbtype="varchar" precision="???" phptype="string" null="false" default="" />  
+        <field key="from" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="to" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="private" dbtype="int" precision="1" attributes="unsigned" phptype="integer" null="false" default="0" />  
+        <field key="active" dbtype="int" precision="1" attributes="unsigned" phptype="integer" null="false" default="0" />  
+        <field key="timestamp" dbtype="datetime" phptype="datetime" null="true" index="index" />
+        <!-- Should these be separated out into a separate networkit_message_info table for extending like ModUser? -->
+        <field key="createdby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="receivedon" dbtype="datetime" phptype="datetime" null="true" index="index" />
+        <field key="receivedby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="editedon" dbtype="datetime" phptype="datetime" null="true" />
+        <field key="editedby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="extended" dbtype="varchar" precision="???" phptype="string" null="false" default="" />  
+        <aggregate alias="CreatedBy" class="modUser" local="createdby" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="EditedBy" class="modUser" local="editedby" foreign="id" cardinality="one" owner="foreign" />
+        <!-- modUser -->
+    </object>
+    
+    <!-- for ajax chat scripts to record latest activity (E.G. chatrooms) -->
+    <!-- Identifiers are for stuff like IP, cookie ID, etc... -->
+    <!-- Should this be separated out into a separate package or as a module? -->
+    <object class="NetworkActivity" table="networkit_activity" extends="xPDOSimpleObject"> 
+        <field key="name" dbtype="varchar" precision="30" phptype="string" null="false" default="" />  
+        <field key="userid" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="attributes" dbtype="varchar" precision="20" phptype="string" null="false" default="" />  
+        <field key="timestamp" dbtype="datetime" phptype="datetime" null="true" index="index" />
+        <field key="identifier1" dbtype="varchar" precision="128" phptype="string" null="false" default="" />  
+        <field key="identifier2" dbtype="varchar" precision="128" phptype="string" null="false" default="" />  
+        <field key="identifier3" dbtype="varchar" precision="128" phptype="string" null="false" default="" />  
+        <aggregate alias="User" class="modUser" local="userid" foreign="id" cardinality="one" owner="foreign" />
+        <!-- ModUser -->
+    </object>
+
+    <!-- a group can be anything from a friend connection between two people to mass mailing lists or fan bases -->
+    <object class="NetworkGroup" table="networkit_groups" extends="xPDOSimpleObject">  
+        <!-- Types will be site-defined. Should there be a separate table for group types? -->
+        <field key="type" dbtype="varchar" precision="128" phptype="string" null="false" default="" />  
+        <field key="createdon" dbtype="datetime" phptype="datetime" null="true" index="index" />
+        <field key="createdby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="approvedon" dbtype="datetime" phptype="datetime" null="true" />
+        <field key="approvedby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="cancelledon" dbtype="datetime" phptype="datetime" null="true" />
+        <field key="cancelledby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+    </object>
+    
+    <!-- group members -->
+    <!-- Example: To make a "friend" connection between two people, just create a separate group and add only two members to it -->
+    <!-- Example: To make a "fanbase", create a group and add a bunch of people to it -->
+    <object class="NetworkGroupUser" table="networkit_groupusers" extends="xPDOSimpleObject">  
+        <field key="group" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="user" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />        
+        <field key="createdon" dbtype="datetime" phptype="datetime" null="true" index="index" />
+        <field key="createdby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="editedon" dbtype="datetime" phptype="datetime" null="true" />
+        <field key="editedby" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="type" dbtype="varchar" precision="20" phptype="string" null="false" default="" />  
+        <field key="attributes" dbtype="varchar" precision="20" phptype="string" null="false" default="" />  
+        <field key="extended" dbtype="varchar" precision="128" phptype="string" null="false" default="" />  
+        <field key="active" dbtype="int" precision="1" attributes="unsigned" phptype="integer" null="false" default="0" />  
+        
+        <aggregate alias="Group" class="NetworkGroup" local="group" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="Users" class="modUser" local="user" foreign="id" cardinality="one" owner="foreign" />
+    </object>
+</model>
